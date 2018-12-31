@@ -1,3 +1,6 @@
+#pragma once
+
+#include <iostream>
 #include <memory>
 
 namespace AST {
@@ -40,10 +43,7 @@ public:
         visitor.visit(*this);
     }
 
-private:
     int value;
-
-    friend class PrintVisitor;
 };
     
 class BinaryExpr : public Expr {
@@ -57,12 +57,9 @@ public:
         visitor.visit(*this);
     }
 
-private:
+    BinOp op;
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
-    BinOp op;
-
-    friend class PrintVisitor;
 };
 
 class Assign : public ASTNode {
@@ -74,17 +71,13 @@ public:
         visitor.visit(*this);
     }
 
-private:
     std::string identifier;
     std::unique_ptr<Expr> value;
-
-    friend class PrintVisitor;
-
 };
 
 class PrintVisitor : public Visitor {
     virtual void visit(const Number & number) override {
-        std::cout << "(" << number.value << ")";
+        std::cout << number.value;
     }
 
     virtual void visit(const BinaryExpr & expr) override {

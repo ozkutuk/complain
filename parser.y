@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "ast.hpp"
+#include "codegen.hpp"
 }
 
 %code {
@@ -35,12 +36,18 @@ void yy::parser::error(const std::string & message) {
 
 %%
 
-program: program assign EOL    { AST::PrintVisitor printer; $2->accept(printer); std::cout << std::endl; } 
+program: program assign EOL    { /* AST::PrintVisitor printer; $2->accept(printer); std::cout << std::endl; */ 
+                                    // CodegenVisitor codegen; $2->accept(codegen);                   
+                                    // std::cout << codegen.value << std::endl;
+                               } 
        | program ERROR EOL     { std::cerr << "Error: " << $2 << std::endl; }
        | %empty
        ;
 
-assign: IDENTIFIER ASSIGN expr { $$ = std::make_unique<AST::Assign>($1, $3); }
+assign: IDENTIFIER ASSIGN expr { $$ = std::make_unique<AST::Assign>($1, $3);
+                                 CodegenVisitor codegen; $3->accept(codegen);
+                                 // std::cout << codegen.value << std::endl;
+                                }
       ;
 
 expr: expr MINUS term          { $$ = std::make_unique<AST::BinaryExpr>(AST::BinOp::Sub, $1, $3); }
