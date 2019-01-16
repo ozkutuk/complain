@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 
+#include "driver.hpp"
+
 namespace AST {
 
 enum class BinOp {
@@ -17,7 +19,7 @@ class Visitor;
 class ASTNode {
 public:
     virtual ~ASTNode() = default;
-    virtual void accept(Visitor & visitor) = 0;
+    virtual void accept(Visitor & visitor, Driver & driver) = 0;
 };
 
 class Expr;
@@ -27,9 +29,9 @@ class Assign;
 
 class Visitor {
 public:
-    virtual void visit(const Number & number) = 0;
-    virtual void visit(const BinaryExpr & expr) = 0;
-    virtual void visit(const Assign & assign) = 0;
+    virtual void visit(const Number & number, Driver & driver) = 0;
+    virtual void visit(const BinaryExpr & expr, Driver & driver) = 0;
+    virtual void visit(const Assign & assign, Driver & driver) = 0;
 };
 
 class Expr : public ASTNode {
@@ -39,8 +41,8 @@ class Expr : public ASTNode {
 class Number : public Expr {
 public:
     Number(int value) : value(value) { }
-    virtual void accept(Visitor & visitor) override {
-        visitor.visit(*this);
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
     }
 
     int value;
@@ -53,8 +55,8 @@ public:
         : op(op),
           lhs(std::move(lhs)),
           rhs(std::move(rhs)) { }
-    virtual void accept(Visitor & visitor) override {
-        visitor.visit(*this);
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
     }
 
     BinOp op;
@@ -67,14 +69,15 @@ public:
     Assign(const std::string & identifier, std::unique_ptr<Expr> & value)
         : identifier(identifier),
           value(std::move(value)) { }
-    virtual void accept(Visitor & visitor) override {
-        visitor.visit(*this);
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
     }
 
     std::string identifier;
     std::unique_ptr<Expr> value;
 };
 
+#if 0
 class PrintVisitor : public Visitor {
     virtual void visit(const Number & number) override {
         std::cout << number.value;
@@ -94,6 +97,7 @@ class PrintVisitor : public Visitor {
         std::cout << ")";
     }
 };
+#endif
 
 
 } // namespace AST

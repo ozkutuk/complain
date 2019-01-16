@@ -5,6 +5,7 @@
 #include <map>
 
 #include "ast.hpp"
+#include "driver.hpp"
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -46,16 +47,16 @@ static llvm::Value * LogErrorV(const std::string & message) {
     return nullptr;
 }
 
-void CodegenVisitor::visit(const AST::Number & number) {
-    std::cout << number.value << std::endl;
+void CodegenVisitor::visit(const AST::Number & number, Driver & driver) {
+    // std::cout << number.value << std::endl;
     value = llvm::ConstantInt::get(ctx, llvm::APInt(32, number.value, true));
 }
 
-void CodegenVisitor::visit(const AST::BinaryExpr & expr) {
+void CodegenVisitor::visit(const AST::BinaryExpr & expr, Driver & driver) {
     llvm::Value * tmp = value; 
-    expr.lhs->accept(*this);
+    expr.lhs->accept(*this, driver);
     llvm::Value * L = value;
-    expr.rhs->accept(*this);
+    expr.rhs->accept(*this, driver);
     llvm::Value * R = value;
     value = tmp;
 
@@ -87,8 +88,23 @@ void CodegenVisitor::visit(const AST::BinaryExpr & expr) {
 
 }
 
-void CodegenVisitor::visit(const AST::Assign & assign) {
-    // TODO
-    value = nullptr;
+void CodegenVisitor::visit(const AST::Assign & assign, Driver & driver) {
+    // value = nullptr;
+    assign.value->accept(*this, driver);
+
+
+    auto it = symbols.find(assign.identifier);
+    if (it != symbols.end()) {
+        auto alloc = it->second;
+        value = builder.CreateStore(value, alloc);
+    }
+    else {
+        llvm::Value * alloc = builder.CreateAlloca(value->getType());
+        symbols[assign.identifier] =  alloc;
+        value = builder.CreateStore(value, alloc);
+    }
+    // llvm::Value * num = ConstantInt::get(int_type, aTable.value, true);
+    // Value *alloc = new AllocaInst(int_type, aTable.variableName, entry);
+    // StoreInst *ptr = new StoreInst(num,alloc,false,entry);
 }
 

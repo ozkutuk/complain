@@ -1,9 +1,11 @@
 #include "parser.hpp"
 #include "codegen.hpp"
+#include "driver.hpp"
 
 int main(void) {
     Codegen::init();
-    yy::parser parser;
+    Driver driver;
+    yy::parser parser(driver);
     parser.parse();
     return 0;
 }

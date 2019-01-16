@@ -11,11 +11,17 @@
 
 #include "ast.hpp"
 #include "codegen.hpp"
+
+class Driver;
 }
+
+%param { Driver & driver }
 
 %code {
 
-yy::parser::symbol_type yylex();
+#include "driver.hpp"
+
+yy::parser::symbol_type yylex(Driver & driver);
 
 void yy::parser::error(const std::string & message) {
     std::cout << "Error: " << message << std::endl;
@@ -29,7 +35,7 @@ void yy::parser::error(const std::string & message) {
 %token <int> NUMBER
 %token <std::string> IDENTIFIER ERROR
 %token MINUS PLUS MUL DIV 
-%token EOL ASSIGN LPAREN RPAREN
+%token EOL ASSIGN LPAREN RPAREN SEMICOLON RETURN
 %token END 0
 
 
@@ -37,22 +43,26 @@ void yy::parser::error(const std::string & message) {
 
 %%
 
-program: program expr EOL    { /* AST::PrintVisitor printer; $2->accept(printer); std::cout << std::endl; */ 
-                                    // CodegenVisitor codegen; $2->accept(codegen);                   
-                                    // std::cout << codegen.value << std::endl;
-                                 CodegenVisitor codegen; $2->accept(codegen);
-                                 Codegen::write_result(codegen.value);
-                                 Codegen::print_ir();
-                               } 
-       | program ERROR EOL     { std::cerr << "Error: " << $2 << std::endl; }
-       | %empty
+program: statements END     { Codegen::print_ir(); } 
        ;
 
-assign: IDENTIFIER ASSIGN expr { $$ = std::make_unique<AST::Assign>($1, $3);
-                                 CodegenVisitor codegen; $3->accept(codegen);
-                                 Codegen::write_result(codegen.value);
-                                 Codegen::print_ir();
-                                 // std::cout << codegen.value << std::endl;
+statements: statements statement SEMICOLON
+          | %empty
+          ;
+
+statement: assign
+         | return_stmt
+         ;
+
+return_stmt: RETURN expr    { CodegenVisitor codegen; $2->accept(codegen, driver);
+                              Codegen::write_result(codegen.value);
+                            }
+           ;
+
+assign: IDENTIFIER ASSIGN expr { 
+                                 $$ = std::make_unique<AST::Assign>($1, $3);
+                                 CodegenVisitor codegen; 
+                                 $$->accept(codegen, driver);
                                 }
       ;
 
@@ -66,7 +76,7 @@ term: term MUL factor          { $$ = std::make_unique<AST::BinaryExpr>(AST::Bin
     | factor                   { $$ = std::move($1); }
     ;
 
-factor: IDENTIFIER             { /* TODO find val from symbol table */ $$ = std::make_unique<AST::Number>(0); } // temp
+factor: IDENTIFIER             { /* TODO find val from symbol table */ $$ = std::make_unique<AST::Number>(4); } // temp
       | NUMBER                 { $$ = std::make_unique<AST::Number>($1); }
       | LPAREN expr RPAREN     { $$ = std::move($2); }
       ;

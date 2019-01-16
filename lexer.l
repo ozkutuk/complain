@@ -5,7 +5,7 @@
 #include <iostream>
 
 #undef YY_DECL
-#define YY_DECL yy::parser::symbol_type yylex()
+#define YY_DECL yy::parser::symbol_type yylex(Driver & driver)
 
 #undef yyterminate
 #define yyterminate yy::parser::make_END()
@@ -20,11 +20,12 @@
 "/"                  { return yy::parser::make_DIV(); }
 "("                  { return yy::parser::make_LPAREN(); }
 ")"                  { return yy::parser::make_RPAREN(); }
+";"                  { return yy::parser::make_SEMICOLON(); }
 ":="                 { return yy::parser::make_ASSIGN(); }
+"return"             { return yy::parser::make_RETURN(); }
 [a-zA-Z][a-zA-Z0-9]* { return yy::parser::make_IDENTIFIER(yytext); }
 [0-9]+               { return yy::parser::make_NUMBER(std::stoi(yytext)); }
-\n                   { return yy::parser::make_EOL(); }
-[ \t]                { /* ignore */ }
+[ \t\n]                { /* ignore */ }
 .                    { return yy::parser::make_ERROR(yytext); }
 
 <<EOF>>              { return yy::parser::make_END(); }
