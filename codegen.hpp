@@ -12,3 +12,10 @@ public:
     llvm::Value * value;
 };
 
+namespace Codegen {
+
+void write_result(llvm::Value * val);
+void print_ir();
+void init();
+
+}

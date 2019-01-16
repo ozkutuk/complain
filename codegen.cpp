@@ -12,27 +12,51 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/Value.h"
 
-using namespace llvm;
+static llvm::LLVMContext ctx;
+// we do not support multiple translation units, so we can just initialize the module here
+static std::unique_ptr<llvm::Module> module = std::make_unique<llvm::Module>("top", ctx);
+static llvm::IRBuilder<> builder(ctx);
 
-static LLVMContext ctx;
-static IRBuilder<> builder(ctx);
-static std::map<std::string, Value *> locals;
+namespace Codegen {
 
-static Value * LogErrorV(const std::string & message) {
+void init() {
+    llvm::FunctionType * mainType = llvm::FunctionType::get(builder.getInt32Ty(), false);
+    llvm::Function * mainFunction = llvm::Function::Create(mainType,
+            llvm::Function::ExternalLinkage, "main", module.get());
+
+    llvm::BasicBlock * mainBlock = llvm::BasicBlock::Create(ctx, "entry", mainFunction);
+
+    // initial insert point is main block for now
+    builder.SetInsertPoint(mainBlock);
+}
+
+void write_result(llvm::Value * val) {
+    builder.CreateRet(val);
+}
+
+void print_ir() {
+    module->print(llvm::errs(), nullptr);
+}
+
+}
+
+
+static llvm::Value * LogErrorV(const std::string & message) {
     std::cerr << message << std::endl;
     return nullptr;
 }
 
 void CodegenVisitor::visit(const AST::Number & number) {
-    value = ConstantFP::get(ctx, APFloat(static_cast<double>(number.value)));
+    std::cout << number.value << std::endl;
+    value = llvm::ConstantInt::get(ctx, llvm::APInt(32, number.value, true));
 }
 
 void CodegenVisitor::visit(const AST::BinaryExpr & expr) {
-    Value * tmp = value; 
+    llvm::Value * tmp = value; 
     expr.lhs->accept(*this);
-    Value * L = value;
-    expr.lhs->accept(*this);
-    Value * R = value;
+    llvm::Value * L = value;
+    expr.rhs->accept(*this);
+    llvm::Value * R = value;
     value = tmp;
 
     if (!L || !R)
@@ -40,19 +64,24 @@ void CodegenVisitor::visit(const AST::BinaryExpr & expr) {
 
     switch (expr.op) {
         case AST::BinOp::Add: {
-            value = builder.CreateFAdd(L, R, "addtmp");
+            value = builder.CreateAdd(L, R, "addtmp");
+            break;
         }
         case AST::BinOp::Sub: {
-            value = builder.CreateFSub(L, R, "subtmp");
+            value = builder.CreateSub(L, R, "subtmp");
+            break;
         }
         case AST::BinOp::Mul: {
-            value = builder.CreateFMul(L, R, "multmp");
+            value = builder.CreateMul(L, R, "multmp");
+            break;
         }
         case AST::BinOp::Div: {
-            value =  builder.CreateFDiv(L, R, "divtmp");
+            value =  builder.CreateUDiv(L, R, "divtmp");
+            break;
         }
         default: {
             value = LogErrorV("invalid binary operator");
+            break;
         }
     }
 
