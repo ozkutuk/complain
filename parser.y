@@ -76,7 +76,7 @@ term: term MUL factor          { $$ = std::make_unique<AST::BinaryExpr>(AST::Bin
     | factor                   { $$ = std::move($1); }
     ;
 
-factor: IDENTIFIER             { /* TODO find val from symbol table */ $$ = std::make_unique<AST::Number>(4); } // temp
+factor: IDENTIFIER             { $$ = std::make_unique<AST::Identifier>($1); } 
       | NUMBER                 { $$ = std::make_unique<AST::Number>($1); }
       | LPAREN expr RPAREN     { $$ = std::move($2); }
       ;

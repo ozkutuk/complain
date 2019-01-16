@@ -24,6 +24,7 @@ public:
 
 class Expr;
 class Number;
+class Identifier;
 class BinaryExpr;
 class Assign;
 
@@ -32,6 +33,7 @@ public:
     virtual void visit(const Number & number, Driver & driver) = 0;
     virtual void visit(const BinaryExpr & expr, Driver & driver) = 0;
     virtual void visit(const Assign & assign, Driver & driver) = 0;
+    virtual void visit(const Identifier & identifier, Driver & driver) = 0;
 };
 
 class Expr : public ASTNode {
@@ -48,6 +50,16 @@ public:
     int value;
 };
     
+class Identifier : public Expr {
+public:
+    Identifier(const std::string & name) : name(name) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::string name;
+};
+
 class BinaryExpr : public Expr {
 public:
     BinaryExpr(BinOp op, std::unique_ptr<Expr> & lhs,

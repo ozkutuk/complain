@@ -13,9 +13,10 @@ public:
     virtual void visit(const AST::Number & number, Driver & driver) override;
     virtual void visit(const AST::BinaryExpr & expr, Driver & driver) override;
     virtual void visit(const AST::Assign & assign, Driver & driver) override;
+    virtual void visit(const AST::Identifier & identifier, Driver & driver) override;
 
     llvm::Value * value;
-    std::unordered_map<std::string,llvm::Value *> symbols = {}; // allocs
+    // std::unordered_map<std::string,llvm::Value *> symbols = {}; // allocs
 
 };
 

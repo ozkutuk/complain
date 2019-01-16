@@ -93,18 +93,31 @@ void CodegenVisitor::visit(const AST::Assign & assign, Driver & driver) {
     assign.value->accept(*this, driver);
 
 
-    auto it = symbols.find(assign.identifier);
-    if (it != symbols.end()) {
+    auto it = driver.globals.find(assign.identifier);
+    if (it != driver.globals.end()) {
         auto alloc = it->second;
         value = builder.CreateStore(value, alloc);
     }
     else {
         llvm::Value * alloc = builder.CreateAlloca(value->getType());
-        symbols[assign.identifier] =  alloc;
+        driver.globals[assign.identifier] =  alloc;
         value = builder.CreateStore(value, alloc);
     }
     // llvm::Value * num = ConstantInt::get(int_type, aTable.value, true);
     // Value *alloc = new AllocaInst(int_type, aTable.variableName, entry);
     // StoreInst *ptr = new StoreInst(num,alloc,false,entry);
+}
+
+void CodegenVisitor::visit(const AST::Identifier & identifier, Driver & driver) {
+    auto it = driver.globals.find(identifier.name);
+    if (it != driver.globals.end()) {
+        auto alloc = it->second;
+        value = builder.CreateLoad(alloc);
+    }
+    else {
+        value = LogErrorV("identifier referenced before initialization");
+    }
+
+    
 }
 
