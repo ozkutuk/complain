@@ -35,11 +35,20 @@ void write_result(llvm::Value * val) {
     builder.CreateRet(val);
 }
 
+void output_id(llvm::Value * val) {
+    llvm::FunctionType * printfType = llvm::FunctionType::get(llvm::Type::getInt32Ty(ctx), llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0), true);
+    llvm::Constant * printFunction = module->getOrInsertFunction("printf", printfType);
+
+	llvm::Value * stringProto = builder.CreateGlobalStringPtr("%d\n");
+    std::vector<llvm::Value *> printArgs = {stringProto, val};
+    builder.CreateCall(printFunction, printArgs, "printCall");
+}
+
 void print_ir() {
     module->print(llvm::errs(), nullptr);
 }
 
-}
+} // namespace Codegen
 
 
 static llvm::Value * LogErrorV(const std::string & message) {

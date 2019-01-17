@@ -23,9 +23,11 @@
 ";"                  { return yy::parser::make_SEMICOLON(); }
 ":="                 { return yy::parser::make_ASSIGN(); }
 "return"             { return yy::parser::make_RETURN(); }
+"input"              { return yy::parser::make_INPUT(); }
+"output"             { return yy::parser::make_OUTPUT(); }
 [a-zA-Z][a-zA-Z0-9]* { return yy::parser::make_IDENTIFIER(yytext); }
 [0-9]+               { return yy::parser::make_NUMBER(std::stoi(yytext)); }
-[ \t\n]                { /* ignore */ }
+[ \t\n]              { /* ignore */ }
 .                    { return yy::parser::make_ERROR(yytext); }
 
 <<EOF>>              { return yy::parser::make_END(); }

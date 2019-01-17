@@ -35,7 +35,7 @@ void yy::parser::error(const std::string & message) {
 %token <int> NUMBER
 %token <std::string> IDENTIFIER ERROR
 %token MINUS PLUS MUL DIV 
-%token EOL ASSIGN LPAREN RPAREN SEMICOLON RETURN
+%token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT
 %token END 0
 
 
@@ -52,6 +52,7 @@ statements: statements statement SEMICOLON
 
 statement: assign
          | return_stmt
+         | io_stmt
          ;
 
 return_stmt: RETURN expr    { CodegenVisitor codegen; $2->accept(codegen, driver);
@@ -65,6 +66,15 @@ assign: IDENTIFIER ASSIGN expr {
                                  $$->accept(codegen, driver);
                                 }
       ;
+
+io_stmt: INPUT IDENTIFIER      { std::cerr << "input statements are not implemented" << std::endl; }
+       | OUTPUT IDENTIFIER     { auto tmp_id = std::make_unique<AST::Identifier>($2);
+                                 CodegenVisitor codegen;
+                                 tmp_id->accept(codegen, driver); 
+                                 Codegen::output_id(codegen.value);
+                                 // $$ = std::make_unique<AST::OutputStmt>(codegen.value);
+                               }
+       ;
 
 expr: expr MINUS term          { $$ = std::make_unique<AST::BinaryExpr>(AST::BinOp::Sub, $1, $3); }
     | expr PLUS term           { $$ = std::make_unique<AST::BinaryExpr>(AST::BinOp::Add, $1, $3); }

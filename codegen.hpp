@@ -23,6 +23,7 @@ public:
 namespace Codegen {
 
 void write_result(llvm::Value * val);
+void output_id(llvm::Value * val);
 void print_ir();
 void init();
 
