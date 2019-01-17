@@ -14,6 +14,14 @@ enum class BinOp {
     Div
 };
 
+enum class CompOp {
+    Less,
+    LessEqual,
+    Equals,
+    Greater,
+    GreaterEqual
+};
+
 class Visitor;
 
 class ASTNode {
@@ -27,6 +35,7 @@ class Number;
 class Identifier;
 class BinaryExpr;
 class Assign;
+class Conditional;
 
 class Visitor {
 public:
@@ -34,6 +43,7 @@ public:
     virtual void visit(const BinaryExpr & expr, Driver & driver) = 0;
     virtual void visit(const Assign & assign, Driver & driver) = 0;
     virtual void visit(const Identifier & identifier, Driver & driver) = 0;
+    virtual void visit(const Conditional & conditional, Driver & driver) = 0;
 };
 
 class Expr : public ASTNode {
@@ -72,6 +82,22 @@ public:
     }
 
     BinOp op;
+    std::unique_ptr<Expr> lhs;
+    std::unique_ptr<Expr> rhs;
+};
+
+class Conditional : public Expr {
+public:
+    Conditional(CompOp op, std::unique_ptr<Expr> & lhs,
+            std::unique_ptr<Expr> & rhs)
+        : op(op),
+          lhs(std::move(lhs)),
+          rhs(std::move(rhs)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    CompOp op;
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
 };

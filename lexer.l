@@ -22,6 +22,11 @@
 ")"                  { return yy::parser::make_RPAREN(); }
 ";"                  { return yy::parser::make_SEMICOLON(); }
 ":="                 { return yy::parser::make_ASSIGN(); }
+"<="                 { return yy::parser::make_LESSEQUAL(); }
+"<"                  { return yy::parser::make_LESSTHAN(); }
+"=="                 { return yy::parser::make_EQUALS(); }
+">="                 { return yy::parser::make_GREATEREQUAL(); }
+">"                  { return yy::parser::make_GREATERTHAN(); }
 "return"             { return yy::parser::make_RETURN(); }
 "input"              { return yy::parser::make_INPUT(); }
 "output"             { return yy::parser::make_OUTPUT(); }

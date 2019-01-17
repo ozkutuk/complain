@@ -31,10 +31,13 @@ void yy::parser::error(const std::string & message) {
 
 %type <std::unique_ptr<AST::Expr>> expr term factor;
 %type <std::unique_ptr<AST::Assign>> assign;
+%type <std::unique_ptr<AST::Conditional>> conditional;
+%type <AST::CompOp> comparison;
 
 %token <int> NUMBER
 %token <std::string> IDENTIFIER ERROR
 %token MINUS PLUS MUL DIV 
+%token LESSTHAN LESSEQUAL EQUALS GREATERTHAN GREATEREQUAL
 %token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT
 %token END 0
 
@@ -54,6 +57,16 @@ statement: assign
          | return_stmt
          | io_stmt
          ;
+
+conditional: expr comparison expr { $$ = std::make_unique<AST::Conditional>($2, $1, $3); }
+           ;
+
+comparison: LESSTHAN     { $$ = AST::CompOp::Less; }
+          | LESSEQUAL    { $$ = AST::CompOp::LessEqual; }
+          | EQUALS       { $$ = AST::CompOp::Equals; }
+          | GREATERTHAN  { $$ = AST::CompOp::Greater; }
+          | GREATEREQUAL { $$ = AST::CompOp::GreaterEqual; }
+          ;
 
 return_stmt: RETURN expr    { CodegenVisitor codegen; $2->accept(codegen, driver);
                               Codegen::write_result(codegen.value);

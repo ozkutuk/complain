@@ -86,11 +86,51 @@ void CodegenVisitor::visit(const AST::BinaryExpr & expr, Driver & driver) {
             break;
         }
         case AST::BinOp::Div: {
-            value =  builder.CreateUDiv(L, R, "divtmp");
+            value =  builder.CreateSDiv(L, R, "divtmp");
             break;
         }
         default: {
             value = LogErrorV("invalid binary operator");
+            break;
+        }
+    }
+
+}
+
+void CodegenVisitor::visit(const AST::Conditional & conditional, Driver & driver) {
+    llvm::Value * tmp = value; 
+    conditional.lhs->accept(*this, driver);
+    llvm::Value * L = value;
+    conditional.rhs->accept(*this, driver);
+    llvm::Value * R = value;
+    value = tmp;
+
+    if (!L || !R)
+        value = nullptr;
+
+    switch (conditional.op) {
+        case AST::CompOp::Less: {
+            value = builder.CreateICmpSLT(L, R, "lesstmp");
+            break;
+        }
+        case AST::CompOp::LessEqual: {
+            value = builder.CreateICmpSLE(L, R, "leqtmp");
+            break;
+        }
+        case AST::CompOp::Equals: {
+            value = builder.CreateICmpEQ(L, R, "eqtmp");
+            break;
+        }
+        case AST::CompOp::Greater: {
+            value = builder.CreateICmpSGT(L, R, "greatertmp");
+            break;
+        }
+        case AST::CompOp::GreaterEqual: {
+            value = builder.CreateICmpSGE(L, R, "geqtmp");
+            break;
+        }
+        default: {
+            value = LogErrorV("invalid conditional operator");
             break;
         }
     }
