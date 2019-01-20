@@ -35,6 +35,7 @@ void yy::parser::error(const std::string & message) {
 %type <std::unique_ptr<AST::Statement>> statement;
 %type <std::unique_ptr<AST::IfStatement>> if_stmt;
 %type <std::unique_ptr<AST::Return>> return_stmt;
+%type <std::unique_ptr<AST::IOStatement>> io_stmt;
 %type <std::unique_ptr<AST::Conditional>> conditional;
 %type <AST::CompOp> comparison;
 
@@ -72,7 +73,7 @@ statements: statements statement SEMICOLON {
 
 statement: assign      { $$ = std::move($1); }
          | return_stmt { $$ = std::move($1); }
-         | io_stmt     { $$ = nullptr; }
+         | io_stmt     { $$ = std::move($1); }
          | if_stmt     { $$ = std::move($1); }
          ;
 
@@ -99,12 +100,9 @@ assign: IDENTIFIER ASSIGN expr {
                                 }
       ;
 
-io_stmt: INPUT IDENTIFIER      { std::cerr << "input statements are not implemented" << std::endl; }
+io_stmt: INPUT IDENTIFIER      { std::cerr << "input statements are not implemented" << std::endl; $$ = nullptr; }
        | OUTPUT IDENTIFIER     { auto tmp_id = std::make_unique<AST::Identifier>($2);
-                                 CodegenVisitor codegen;
-                                 tmp_id->accept(codegen, driver); 
-                                 Codegen::output_id(codegen.value);
-                                 // $$ = std::make_unique<AST::OutputStmt>(codegen.value);
+                                 $$ = std::make_unique<AST::Output>(tmp_id);
                                }
        ;
 

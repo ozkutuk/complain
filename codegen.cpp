@@ -31,15 +31,6 @@ void init() {
     builder.SetInsertPoint(mainBlock);
 }
 
-void output_id(llvm::Value * val) {
-    llvm::FunctionType * printfType = llvm::FunctionType::get(llvm::Type::getInt32Ty(ctx), llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0), true);
-    llvm::Constant * printFunction = module->getOrInsertFunction("printf", printfType);
-
-	llvm::Value * stringProto = builder.CreateGlobalStringPtr("%d\n");
-    std::vector<llvm::Value *> printArgs = {stringProto, val};
-    builder.CreateCall(printFunction, printArgs, "printCall");
-}
-
 void print_ir() {
     module->print(llvm::errs(), nullptr);
 }
@@ -193,3 +184,17 @@ void CodegenVisitor::visit(const AST::Return & ret, Driver & driver) {
     ret.expr->accept(*this, driver);
     builder.CreateRet(value);
 }
+
+void CodegenVisitor::visit(const AST::Output & output, Driver & driver) {
+    output.identifier->accept(*this, driver); 
+
+    llvm::FunctionType * printfType = llvm::FunctionType::get(llvm::Type::getInt32Ty(ctx), 
+            llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0), true);
+    llvm::Constant * printFunction = module->getOrInsertFunction("printf", printfType);
+
+    llvm::Value * stringProto = builder.CreateGlobalStringPtr("%d\n");
+    std::vector<llvm::Value *> printArgs = {stringProto, value};
+    builder.CreateCall(printFunction, printArgs, "printCall");
+}
+
+

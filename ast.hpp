@@ -33,6 +33,7 @@ public:
 
 class Expr;
 class Statement;
+class IOStatement;
 class IfStatement;
 class Return;
 class Block;
@@ -41,6 +42,7 @@ class Identifier;
 class BinaryExpr;
 class Assign;
 class Conditional;
+class Output;
 
 class Visitor {
 public:
@@ -52,6 +54,7 @@ public:
     virtual void visit(const Block & block, Driver & driver) = 0;
     virtual void visit(const IfStatement & if_stmt, Driver & driver) = 0;
     virtual void visit(const Return & ret, Driver & driver) = 0;
+    virtual void visit(const Output & output, Driver & driver) = 0;
 };
 
 class Expr : public ASTNode {
@@ -163,6 +166,22 @@ public:
     std::string identifier;
     std::unique_ptr<Expr> value;
 };
+
+class IOStatement : public Statement {
+
+};
+
+class Output : public IOStatement {
+public:
+    Output(std::unique_ptr<Identifier> & identifier)
+        : identifier(std::move(identifier)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::unique_ptr<Identifier> identifier;
+};
+
 
 #if 0
 class PrintVisitor : public Visitor {

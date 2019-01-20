@@ -18,13 +18,13 @@ public:
     virtual void visit(const AST::IfStatement & if_stmt, Driver & driver) override;
     virtual void visit(const AST::Block & block, Driver & driver) override;
     virtual void visit(const AST::Return & ret, Driver & driver) override;
+    virtual void visit(const AST::Output & output, Driver & driver) override;
 
     llvm::Value * value;
 };
 
 namespace Codegen {
 
-void output_id(llvm::Value * val);
 void print_ir();
 void init();
 
