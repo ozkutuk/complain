@@ -1,0 +1,8 @@
+x := 5;
+y := 37;
+
+x := 14;
+y := y - 21;
+
+result := x + y;
+return result;

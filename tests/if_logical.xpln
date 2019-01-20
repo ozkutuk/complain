@@ -1,0 +1,17 @@
+x := 3;
+y := 6;
+z := 9;
+
+if x < y and y < z
+    output x;
+endi;
+
+if x < y and y > z
+    output y;
+endi;
+
+if x < y or y > z
+    output z;
+endi;
+
+return 0;

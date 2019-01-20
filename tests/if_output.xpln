@@ -1,0 +1,12 @@
+x := 10;
+y := 15;
+
+if x < y
+    output x;
+endi;
+
+if x > y
+    output y;
+endi;
+
+return 0;

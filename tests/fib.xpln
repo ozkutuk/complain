@@ -1,0 +1,11 @@
+a := 0;
+b := 1;
+
+while b < 100000
+    output b;
+    tmp := b;
+    b := a + b;
+    a := tmp;
+endw;
+
+return 0;

@@ -85,8 +85,8 @@ $ gcc output.s -o output
 Testing:
 
 Several tests are provided in the tests directory. However they do not
-test all possible edge cases extensively. They are merely the tests
-used during the development.
+test all possible edge cases extensively. They are not automated tests,
+rather one run them and observe whether they do "the expected thing".
 
 [XPLN]: https://github.com/bozsahin/ceng444/blob/master/project-material/xpl-specs-fall2018.pdf
 

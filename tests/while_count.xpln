@@ -1,0 +1,8 @@
+counter := 0;
+
+while counter < 20
+    output counter;
+    counter := counter + 1;
+endw;
+
+return 0;
