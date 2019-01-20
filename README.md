@@ -82,7 +82,7 @@ $ gcc output.s -o output
 ```
 
 
-Testing:
+## Testing:
 
 Several tests are provided in the tests directory. However they do not
 test all possible edge cases extensively. They are not automated tests,
