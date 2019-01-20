@@ -17,6 +17,7 @@ public:
     virtual void visit(const AST::Comparison & comparison, Driver & driver) override;
     virtual void visit(const AST::Logical & logical, Driver & driver) override;
     virtual void visit(const AST::IfStatement & if_stmt, Driver & driver) override;
+    virtual void visit(const AST::WhileStatement & while_stmt, Driver & driver) override;
     virtual void visit(const AST::Block & block, Driver & driver) override;
     virtual void visit(const AST::Return & ret, Driver & driver) override;
     virtual void visit(const AST::Output & output, Driver & driver) override;

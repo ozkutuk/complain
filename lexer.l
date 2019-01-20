@@ -29,6 +29,8 @@
 ">"                  { return yy::parser::make_GREATERTHAN(); }
 "if"                 { return yy::parser::make_IF(); }
 "endi"               { return yy::parser::make_ENDIF(); }
+"while"              { return yy::parser::make_WHILE(); }
+"endw"               { return yy::parser::make_ENDW(); }
 "return"             { return yy::parser::make_RETURN(); }
 "input"              { return yy::parser::make_INPUT(); }
 "output"             { return yy::parser::make_OUTPUT(); }

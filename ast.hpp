@@ -40,6 +40,7 @@ class Expr;
 class Statement;
 class IOStatement;
 class IfStatement;
+class WhileStatement;
 class Return;
 class Block;
 class Number;
@@ -61,6 +62,7 @@ public:
     virtual void visit(const Logical & logical, Driver & driver) = 0;
     virtual void visit(const Block & block, Driver & driver) = 0;
     virtual void visit(const IfStatement & if_stmt, Driver & driver) = 0;
+    virtual void visit(const WhileStatement & while_stmt, Driver & driver) = 0;
     virtual void visit(const Return & ret, Driver & driver) = 0;
     virtual void visit(const Output & output, Driver & driver) = 0;
 };
@@ -169,6 +171,19 @@ public:
     std::unique_ptr<Conditional> cond;
     std::unique_ptr<Block> then_block;
     // std::unique_ptr<Block> else_block;
+};
+
+class WhileStatement : public Statement {
+public:
+    WhileStatement(std::unique_ptr<Conditional> & cond, std::unique_ptr<Block> & loop_block)
+        : cond(std::move(cond)),
+          loop_block(std::move(loop_block)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::unique_ptr<Conditional> cond;
+    std::unique_ptr<Block> loop_block;
 };
 
 class Return : public Statement {

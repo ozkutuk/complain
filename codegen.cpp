@@ -170,9 +170,31 @@ void CodegenVisitor::visit(const AST::IfStatement & if_stmt, Driver & driver) {
     builder.SetInsertPoint(MergeBB);
 }
 
+void CodegenVisitor::visit(const AST::WhileStatement & while_stmt, Driver & driver) {
+    llvm::Function *TheFunction = builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock* CondBB = llvm::BasicBlock::Create(ctx, "cond_check", TheFunction);
+    llvm::BasicBlock* LoopBB = llvm::BasicBlock::Create(ctx, "loop");
+    llvm::BasicBlock* MergeBB = llvm:: BasicBlock::Create(ctx, "whilecont");
+
+    builder.CreateBr(CondBB);
+
+    builder.SetInsertPoint(CondBB);
+    while_stmt.cond->accept(*this, driver); // puts cond in value
+    auto cond_value = value;
+    builder.CreateCondBr(cond_value, LoopBB, MergeBB);
+
+    TheFunction->getBasicBlockList().push_back(LoopBB);
+    builder.SetInsertPoint(LoopBB);
+    while_stmt.loop_block->accept(*this, driver);
+    builder.CreateBr(CondBB);
+
+    TheFunction->getBasicBlockList().push_back(MergeBB);
+    builder.SetInsertPoint(MergeBB);
+}
+
+
 void CodegenVisitor::visit(const AST::Block & block, Driver & driver) {
     for (auto & statement : block.statements) {
-        // TODO
         statement->accept(*this, driver);
     }
 }

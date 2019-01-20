@@ -34,6 +34,7 @@ void yy::parser::error(const std::string & message) {
 %type <std::unique_ptr<AST::Block>> statements;
 %type <std::unique_ptr<AST::Statement>> statement;
 %type <std::unique_ptr<AST::IfStatement>> if_stmt;
+%type <std::unique_ptr<AST::WhileStatement>> while_stmt;
 %type <std::unique_ptr<AST::Return>> return_stmt;
 %type <std::unique_ptr<AST::IOStatement>> io_stmt;
 %type <std::unique_ptr<AST::Conditional>> conditional;
@@ -43,7 +44,7 @@ void yy::parser::error(const std::string & message) {
 %token <std::string> IDENTIFIER
 %token MINUS PLUS MUL DIV 
 %token LESSTHAN LESSEQUAL EQUALS GREATERTHAN GREATEREQUAL
-%token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT IF ENDIF
+%token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT IF ENDIF WHILE ENDW
 %token END 0
 
 %left AND OR
@@ -63,10 +64,14 @@ statement: assign      { $$ = std::move($1); }
          | return_stmt { $$ = std::move($1); }
          | io_stmt     { $$ = std::move($1); }
          | if_stmt     { $$ = std::move($1); }
+         | while_stmt  { $$ = std::move($1); }
          ;
 
 if_stmt: IF conditional statements ENDIF { $$ = std::make_unique<AST::IfStatement>($2, $3); } // TODO else
        ;
+
+while_stmt: WHILE conditional statements ENDW { $$ = std::make_unique<AST::WhileStatement>($2, $3); }
+          ;
 
 conditional: expr comparison expr { $$ = std::make_unique<AST::Comparison>($2, $1, $3); }
            | conditional AND conditional { $$ = std::make_unique<AST::Logical>(AST::LogicOp::And, $1, $3); }
