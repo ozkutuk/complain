@@ -84,18 +84,18 @@ void CodegenVisitor::visit(const AST::BinaryExpr & expr, Driver & driver) {
 
 }
 
-void CodegenVisitor::visit(const AST::Conditional & conditional, Driver & driver) {
+void CodegenVisitor::visit(const AST::Comparison & comparison, Driver & driver) {
     llvm::Value * tmp = value; 
-    conditional.lhs->accept(*this, driver);
+    comparison.lhs->accept(*this, driver);
     llvm::Value * L = value;
-    conditional.rhs->accept(*this, driver);
+    comparison.rhs->accept(*this, driver);
     llvm::Value * R = value;
     value = tmp;
 
     if (!L || !R)
         value = nullptr;
 
-    switch (conditional.op) {
+    switch (comparison.op) {
         case AST::CompOp::Less: {
             value = builder.CreateICmpSLT(L, R, "lesstmp");
             break;
@@ -117,7 +117,35 @@ void CodegenVisitor::visit(const AST::Conditional & conditional, Driver & driver
             break;
         }
         default: {
-            value = LogErrorV("invalid conditional operator");
+            value = LogErrorV("invalid comparison operator");
+            break;
+        }
+    }
+
+}
+
+void CodegenVisitor::visit(const AST::Logical & logical, Driver & driver) {
+    llvm::Value * tmp = value; 
+    logical.lhs->accept(*this, driver);
+    llvm::Value * L = value;
+    logical.rhs->accept(*this, driver);
+    llvm::Value * R = value;
+    value = tmp;
+
+    if (!L || !R)
+        value = nullptr;
+
+    switch (logical.op) {
+        case AST::LogicOp::And: {
+            value = builder.CreateAnd(L, R);
+            break;
+        }
+        case AST::LogicOp::Or: {
+            value = builder.CreateOr(L, R);
+            break;
+        }
+        default: {
+            value = LogErrorV("invalid logical operator");
             break;
         }
     }

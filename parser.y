@@ -40,12 +40,13 @@ void yy::parser::error(const std::string & message) {
 %type <AST::CompOp> comparison;
 
 %token <int> NUMBER
-%token <std::string> IDENTIFIER ERROR
+%token <std::string> IDENTIFIER
 %token MINUS PLUS MUL DIV 
 %token LESSTHAN LESSEQUAL EQUALS GREATERTHAN GREATEREQUAL
 %token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT IF ENDIF
 %token END 0
 
+%left AND OR
 
 %start program
 
@@ -54,21 +55,8 @@ void yy::parser::error(const std::string & message) {
 program: statements END     { CodegenVisitor codegen; $1->accept(codegen, driver); Codegen::print_ir(); } 
        ;
 
-statements: statements statement SEMICOLON { 
-          #if 0
-          if(!$$) {
-            std::cout << "A" << std::endl;
-            $$ = std::make_unique<AST::Block>();
-            } else {
-            std::cout << "B" << std::endl;
-            }
-            #endif
-            $$ = std::move($1);
-            $$->statements.push_back(std::move($2)); }
-
-          | %empty                         { // std::cout << "C" << std::endl;
-                                             $$ = std::make_unique<AST::Block>();
-                                            }
+statements: statements statement SEMICOLON { $$ = std::move($1); $$->statements.push_back(std::move($2)); }
+          | %empty                         { $$ = std::make_unique<AST::Block>(); }
           ;
 
 statement: assign      { $$ = std::move($1); }
@@ -80,7 +68,9 @@ statement: assign      { $$ = std::move($1); }
 if_stmt: IF conditional statements ENDIF { $$ = std::make_unique<AST::IfStatement>($2, $3); } // TODO else
        ;
 
-conditional: expr comparison expr { $$ = std::make_unique<AST::Conditional>($2, $1, $3); }
+conditional: expr comparison expr { $$ = std::make_unique<AST::Comparison>($2, $1, $3); }
+           | conditional AND conditional { $$ = std::make_unique<AST::Logical>(AST::LogicOp::And, $1, $3); }
+           | conditional OR conditional { $$ = std::make_unique<AST::Logical>(AST::LogicOp::Or, $1, $3); }
            ;
 
 comparison: LESSTHAN     { $$ = AST::CompOp::Less; }

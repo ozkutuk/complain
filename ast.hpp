@@ -23,6 +23,11 @@ enum class CompOp {
     GreaterEqual
 };
 
+enum class LogicOp {
+    And,
+    Or
+};
+
 class Visitor;
 
 class ASTNode {
@@ -42,6 +47,8 @@ class Identifier;
 class BinaryExpr;
 class Assign;
 class Conditional;
+class Comparison;
+class Logical;
 class Output;
 
 class Visitor {
@@ -50,7 +57,8 @@ public:
     virtual void visit(const BinaryExpr & expr, Driver & driver) = 0;
     virtual void visit(const Assign & assign, Driver & driver) = 0;
     virtual void visit(const Identifier & identifier, Driver & driver) = 0;
-    virtual void visit(const Conditional & conditional, Driver & driver) = 0;
+    virtual void visit(const Comparison & comparison, Driver & driver) = 0;
+    virtual void visit(const Logical & logical, Driver & driver) = 0;
     virtual void visit(const Block & block, Driver & driver) = 0;
     virtual void visit(const IfStatement & if_stmt, Driver & driver) = 0;
     virtual void visit(const Return & ret, Driver & driver) = 0;
@@ -112,8 +120,12 @@ public:
 };
 
 class Conditional : public Expr {
+
+};
+
+class Comparison : public Conditional {
 public:
-    Conditional(CompOp op, std::unique_ptr<Expr> & lhs,
+    Comparison(CompOp op, std::unique_ptr<Expr> & lhs,
             std::unique_ptr<Expr> & rhs)
         : op(op),
           lhs(std::move(lhs)),
@@ -125,6 +137,22 @@ public:
     CompOp op;
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
+};
+
+class Logical : public Conditional {
+public:
+    Logical(LogicOp op, std::unique_ptr<Conditional> & lhs,
+            std::unique_ptr<Conditional> & rhs)
+        : op(op),
+          lhs(std::move(lhs)),
+          rhs(std::move(rhs)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    LogicOp op;
+    std::unique_ptr<Conditional> lhs;
+    std::unique_ptr<Conditional> rhs;
 };
 
 class IfStatement : public Statement {
@@ -181,29 +209,6 @@ public:
 
     std::unique_ptr<Identifier> identifier;
 };
-
-
-#if 0
-class PrintVisitor : public Visitor {
-    virtual void visit(const Number & number) override {
-        std::cout << number.value;
-    }
-
-    virtual void visit(const BinaryExpr & expr) override {
-        std::cout << "(OpNo:" << static_cast<int>(expr.op) << " ";
-        expr.lhs->accept(*this);
-        std::cout << " ";
-        expr.rhs->accept(*this);
-        std::cout << ")";
-    }
-
-    virtual void visit(const Assign & assign) override {
-        std::cout << "(assign " << assign.identifier << " ";
-        assign.value->accept(*this);
-        std::cout << ")";
-    }
-};
-#endif
 
 
 } // namespace AST
