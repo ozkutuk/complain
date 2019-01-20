@@ -27,6 +27,8 @@
 "=="                 { return yy::parser::make_EQUALS(); }
 ">="                 { return yy::parser::make_GREATEREQUAL(); }
 ">"                  { return yy::parser::make_GREATERTHAN(); }
+"if"                 { return yy::parser::make_IF(); }
+"endi"               { return yy::parser::make_ENDIF(); }
 "return"             { return yy::parser::make_RETURN(); }
 "input"              { return yy::parser::make_INPUT(); }
 "output"             { return yy::parser::make_OUTPUT(); }

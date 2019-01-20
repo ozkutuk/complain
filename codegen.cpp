@@ -31,10 +31,6 @@ void init() {
     builder.SetInsertPoint(mainBlock);
 }
 
-void write_result(llvm::Value * val) {
-    builder.CreateRet(val);
-}
-
 void output_id(llvm::Value * val) {
     llvm::FunctionType * printfType = llvm::FunctionType::get(llvm::Type::getInt32Ty(ctx), llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0), true);
     llvm::Constant * printFunction = module->getOrInsertFunction("printf", printfType);
@@ -137,6 +133,31 @@ void CodegenVisitor::visit(const AST::Conditional & conditional, Driver & driver
 
 }
 
+
+void CodegenVisitor::visit(const AST::IfStatement & if_stmt, Driver & driver) {
+    llvm::Function *TheFunction = builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock* ThenBB = llvm::BasicBlock::Create(ctx, "then", TheFunction);
+    llvm::BasicBlock* MergeBB = llvm:: BasicBlock::Create(ctx, "ifcont");
+
+    if_stmt.cond->accept(*this, driver); // puts cond in value
+    auto cond_value = value;
+    builder.CreateCondBr(cond_value, ThenBB, MergeBB);
+
+    builder.SetInsertPoint(ThenBB);
+    if_stmt.then_block->accept(*this, driver);
+    builder.CreateBr(MergeBB);
+
+    TheFunction->getBasicBlockList().push_back(MergeBB);
+    builder.SetInsertPoint(MergeBB);
+}
+
+void CodegenVisitor::visit(const AST::Block & block, Driver & driver) {
+    for (auto & statement : block.statements) {
+        // TODO
+        statement->accept(*this, driver);
+    }
+}
+
 void CodegenVisitor::visit(const AST::Assign & assign, Driver & driver) {
     // value = nullptr;
     assign.value->accept(*this, driver);
@@ -166,7 +187,9 @@ void CodegenVisitor::visit(const AST::Identifier & identifier, Driver & driver) 
     else {
         value = LogErrorV("identifier referenced before initialization");
     }
-
-    
 }
 
+void CodegenVisitor::visit(const AST::Return & ret, Driver & driver) {
+    ret.expr->accept(*this, driver);
+    builder.CreateRet(value);
+}

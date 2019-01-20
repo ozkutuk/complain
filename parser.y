@@ -31,6 +31,10 @@ void yy::parser::error(const std::string & message) {
 
 %type <std::unique_ptr<AST::Expr>> expr term factor;
 %type <std::unique_ptr<AST::Assign>> assign;
+%type <std::unique_ptr<AST::Block>> statements;
+%type <std::unique_ptr<AST::Statement>> statement;
+%type <std::unique_ptr<AST::IfStatement>> if_stmt;
+%type <std::unique_ptr<AST::Return>> return_stmt;
 %type <std::unique_ptr<AST::Conditional>> conditional;
 %type <AST::CompOp> comparison;
 
@@ -38,7 +42,7 @@ void yy::parser::error(const std::string & message) {
 %token <std::string> IDENTIFIER ERROR
 %token MINUS PLUS MUL DIV 
 %token LESSTHAN LESSEQUAL EQUALS GREATERTHAN GREATEREQUAL
-%token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT
+%token ASSIGN LPAREN RPAREN SEMICOLON RETURN INPUT OUTPUT IF ENDIF
 %token END 0
 
 
@@ -46,17 +50,34 @@ void yy::parser::error(const std::string & message) {
 
 %%
 
-program: statements END     { Codegen::print_ir(); } 
+program: statements END     { CodegenVisitor codegen; $1->accept(codegen, driver); Codegen::print_ir(); } 
        ;
 
-statements: statements statement SEMICOLON
-          | %empty
+statements: statements statement SEMICOLON { 
+          #if 0
+          if(!$$) {
+            std::cout << "A" << std::endl;
+            $$ = std::make_unique<AST::Block>();
+            } else {
+            std::cout << "B" << std::endl;
+            }
+            #endif
+            $$ = std::move($1);
+            $$->statements.push_back(std::move($2)); }
+
+          | %empty                         { // std::cout << "C" << std::endl;
+                                             $$ = std::make_unique<AST::Block>();
+                                            }
           ;
 
-statement: assign
-         | return_stmt
-         | io_stmt
+statement: assign      { $$ = std::move($1); }
+         | return_stmt { $$ = std::move($1); }
+         | io_stmt     { $$ = nullptr; }
+         | if_stmt     { $$ = std::move($1); }
          ;
+
+if_stmt: IF conditional statements ENDIF { $$ = std::make_unique<AST::IfStatement>($2, $3); } // TODO else
+       ;
 
 conditional: expr comparison expr { $$ = std::make_unique<AST::Conditional>($2, $1, $3); }
            ;
@@ -68,9 +89,7 @@ comparison: LESSTHAN     { $$ = AST::CompOp::Less; }
           | GREATEREQUAL { $$ = AST::CompOp::GreaterEqual; }
           ;
 
-return_stmt: RETURN expr    { CodegenVisitor codegen; $2->accept(codegen, driver);
-                              Codegen::write_result(codegen.value);
-                            }
+return_stmt: RETURN expr    { $$ = std::make_unique<AST::Return>($2); }
            ;
 
 assign: IDENTIFIER ASSIGN expr { 

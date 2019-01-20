@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 #include <memory>
 
 #include "driver.hpp"
@@ -31,6 +32,10 @@ public:
 };
 
 class Expr;
+class Statement;
+class IfStatement;
+class Return;
+class Block;
 class Number;
 class Identifier;
 class BinaryExpr;
@@ -44,10 +49,27 @@ public:
     virtual void visit(const Assign & assign, Driver & driver) = 0;
     virtual void visit(const Identifier & identifier, Driver & driver) = 0;
     virtual void visit(const Conditional & conditional, Driver & driver) = 0;
+    virtual void visit(const Block & block, Driver & driver) = 0;
+    virtual void visit(const IfStatement & if_stmt, Driver & driver) = 0;
+    virtual void visit(const Return & ret, Driver & driver) = 0;
 };
 
 class Expr : public ASTNode {
 
+};
+
+class Statement : public ASTNode {
+
+};
+
+class Block : public Statement {
+public:
+    // TODO
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::vector<std::unique_ptr<Statement>> statements;
 };
 
 class Number : public Expr {
@@ -102,7 +124,34 @@ public:
     std::unique_ptr<Expr> rhs;
 };
 
-class Assign : public ASTNode {
+class IfStatement : public Statement {
+public:
+    IfStatement(std::unique_ptr<Conditional> & cond, std::unique_ptr<Block> & then_block)
+            // std::unique_ptr<Block> & else_block)
+        : cond(std::move(cond)),
+          then_block(std::move(then_block)) { }
+          // else_block(std::move(else_block)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::unique_ptr<Conditional> cond;
+    std::unique_ptr<Block> then_block;
+    // std::unique_ptr<Block> else_block;
+};
+
+class Return : public Statement {
+public:
+    Return(std::unique_ptr<Expr> & expr)
+        : expr(std::move(expr)) { }
+    virtual void accept(Visitor & visitor, Driver & driver) override {
+        visitor.visit(*this, driver);
+    }
+
+    std::unique_ptr<Expr> expr;
+};
+
+class Assign : public Statement {
 public:
     Assign(const std::string & identifier, std::unique_ptr<Expr> & value)
         : identifier(identifier),
